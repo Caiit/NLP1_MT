@@ -1,6 +1,8 @@
 import zipfile
 import unicodedata
 import re
+import xml.etree.ElementTree as ET
+import nltk
 
 # Turn a Unicode string to plain ASCII, thanks to
 # http://stackoverflow.com/a/518232/2809427
@@ -33,6 +35,14 @@ def readData(filename, reverse=False):
         nld.append(normalizeString(nl))
     return eng, nld
 
+def readTedData(filename):
+    data = []
+    tree = ET.parse(filename)
+    root = tree.getroot()
+    for seg in root.findall('.//seg'):
+        tokens = ' '.join(nltk.word_tokenize(seg.text))
+        data.append(normalizeString(tokens))
+    return data
 
 def saveDataAsDict(data, filename):
     with open(filename + ".py", 'w') as output_file:
@@ -40,11 +50,18 @@ def saveDataAsDict(data, filename):
 
 
 def saveData(data, filename):
-    with open(filename + ".txt", 'w') as output_file:
+    with open(filename, 'w') as output_file:
         for sentence in data:
             output_file.write(sentence + "\n")
 
+
 if __name__ == "__main__":
-    eng, nld = readData("data/nld-eng.zip")
-    saveData(eng, "../eng")
-    saveData(nld, "../nld")
+    # eng, nld = readData("data/nld-eng.zip")
+    # saveData(eng, "data/torch/eng.txt")
+    # saveData(nld, "data/torch/nld.txt")
+
+    eng = readTedData("data/ted/IWSLT17.TED.tst2010.en-nl.en.xml")
+    saveData(eng, "data/ted/test_eng.txt")
+
+    nld = readTedData("data/ted/IWSLT17.TED.tst2010.en-nl.nl.xml")
+    saveData(nld, "data/ted/test_nld.txt")
